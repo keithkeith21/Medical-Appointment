@@ -1,7 +1,7 @@
 # Medical Appointment No-Shows: Data Cleaning, Warehousing, and Analysis
 
 **By:** Jasfher Pantoja   
-**Tools:** MySQL
+**Tools:** MySQL, Python (Pandas), and PowerBI
 
 ## Project Overview
 
