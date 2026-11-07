@@ -1,5 +1,8 @@
 # Medical Appointment No-Shows: Data Cleaning, Warehousing, and Analysis
 
+**By:** Jasfher Pantoja   
+**Tools:** MySQL
+
 ## Project Overview
 
 This project analyzes medical appointment records to understand patient attendance behavior and identify patterns associated with missed appointments (*no-shows*).
