@@ -320,7 +320,8 @@ The resulting fact table uses these keys to establish relationships with `dim_da
 ### 4.5 Data Warehouse Relationship
 
 <!-- INSERT STAR SCHEMA SCREENSHOT HERE -->
-![Medical Appointment Star Schema](images/star-schema.png)
+![Medical Appointment Star Schema](<img width="186" height="120" alt="Screenshot 2026-11-08 075601" src="https://github.com/user-attachments/assets/6a094829-241d-4af9-98bf-88fc7ba84798" />
+)
 
 ---
 
@@ -555,19 +556,24 @@ Age groups were created in Power Query using conditional column logic.
 ### Additional Dashboard Screenshots
 
 <!-- INSERT ATTENDANCE DISTRIBUTION SCREENSHOT HERE -->
-![Attendance Distribution](images/attendance-distribution.png)
+![Appointment Attendance Distribution](<img width="226" height="192" alt="Screenshot 2026-11-08 075723" src="https://github.com/user-attachments/assets/a5ba7b6f-3bc4-409d-9225-67b2d9d062ee" />
+)
 
 <!-- INSERT MONTHLY NO-SHOW TREND SCREENSHOT HERE -->
-![Monthly No-Show Trend](images/monthly-no-show-trend.png)
+![Monthly No-Show Trend](<img width="225" height="233" alt="Screenshot 2026-11-08 075732" src="https://github.com/user-attachments/assets/f3f2363f-0150-414f-b1c6-6c44565da280" />
+)
 
 <!-- INSERT AGE GROUP ANALYSIS SCREENSHOT HERE -->
-![No-Show by Age Group](images/no-show-by-age-group.png)
+![No-Show by Age Group](<img width="341" height="290" alt="Screenshot 2026-11-08 075739" src="https://github.com/user-attachments/assets/dc77e045-f3c0-4755-b043-03ad64a40006" />
+)
 
 <!-- INSERT NEIGHBOURHOOD ANALYSIS SCREENSHOT HERE -->
-![Top Neighbourhoods by No-Show Count](images/top-neighbourhoods.png)
+![Top 10 Neighbourhoods by No-Show Count](<img width="608" height="236" alt="Screenshot 2026-11-08 075745" src="https://github.com/user-attachments/assets/b8cd1e1d-6079-4d53-95b6-8bafd3563a70" />
+)
 
 <!-- INSERT SMS ANALYSIS SCREENSHOT HERE -->
-![Attendance by SMS Notification](images/sms-attendance.png)
+![Attendance by SMS Notification](<img width="300" height="294" alt="Screenshot 2026-11-08 075753" src="https://github.com/user-attachments/assets/73ce83f3-f5d5-4e00-985c-7bbd08e52841" />
+)
 
 ---
 
