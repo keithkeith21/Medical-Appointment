@@ -1,11 +1,13 @@
 # Medical Appointment No-Shows: Data Cleaning, Warehousing, and Analysis
 
-**By:** Jasfher Pantoja   
-**Tools:** MySQL, Python (Pandas), and PowerBI
+**By:** Jasfher Pantoja
+**Tools:** MySQL, Python (Pandas), and Power BI
+
+---
 
 ## Project Overview
 
-This project analyzes medical appointment records to understand patient attendance behavior and identify patterns associated with missed appointments (*no-shows*).
+This project analyzes medical appointment records to understand patient attendance behavior and identify patterns associated with missed appointments (no-shows).
 
 The project follows an end-to-end data analytics workflow, starting with data exploration and cleaning using Python and Pandas, followed by data warehousing and SQL analysis in MySQL, and finally data visualization using Power BI.
 
@@ -32,6 +34,20 @@ The goal is to transform raw appointment records into structured data and meanin
 | MySQL | Data warehousing and SQL analysis |
 | Power BI | Data visualization and dashboard development |
 
+## Repository Structure
+
+```
+Medical-Appointment/
+├── README.md
+├── images/                       # screenshots used in this README
+├── python/
+│   ├── 01_clean_data.py          # exploration, anomaly checks, cleaning, EDA
+│   └── 02_load_to_mysql.py       # loads the cleaned CSV into MySQL
+└── sql/
+    ├── star_schema.sql           # builds dim_date, dim_patient, fact_appointments
+    └── business_analysis.sql     # the three business questions
+```
+
 ## Project Workflow
 
 1. Data Collection
@@ -41,13 +57,23 @@ The goal is to transform raw appointment records into structured data and meanin
 5. SQL Business Analysis
 6. Power BI Dashboard Development
 
+## How to Run
+
+1. Download the dataset from Kaggle and place `KaggleV2-May-2016.csv` in the project root.
+2. Install the libraries: `pip install pandas numpy sqlalchemy pymysql`
+3. In MySQL Workbench, create the database: `CREATE DATABASE medical_appointment;`
+4. From the project root, run `python python/01_clean_data.py` (creates `cleaned_medical_appointments.csv`).
+5. From the project root, run `python python/02_load_to_mysql.py` (creates `staging_appointments`).
+6. In MySQL Workbench, run `sql/star_schema.sql`, then `sql/business_analysis.sql`.
+7. Connect Power BI to the `medical_appointment` database.
+
 ---
 
 ## 1. Data Collection
 
-The project uses the **Medical Appointment No Shows** dataset, originally distributed through Kaggle.
+The project uses the **Medical Appointment No Shows** dataset, originally distributed through [Kaggle](https://www.kaggle.com/datasets/joniarroba/noshowappointments).
 
-**Dataset file:** `KaggleV2-May-2016.csv`
+Dataset file: `KaggleV2-May-2016.csv`
 
 The dataset contains medical appointment records and patient-related information, including:
 
@@ -66,11 +92,15 @@ The dataset contains medical appointment records and patient-related information
 - SMS Received
 - No-show status
 
+> The original column names `Hipertension` and `Handcap` are spelled that way in the source dataset, and the same spelling is kept in this project.
+
 The original dataset was loaded into Python for initial exploration and data quality assessment.
 
 ---
 
 ## 2. Data Exploration and Cleaning (Python & Pandas)
+
+Full script: [`python/01_clean_data.py`](python/01_clean_data.py)
 
 The initial dataset was loaded using Pandas.
 
@@ -166,11 +196,13 @@ df.to_csv("cleaned_medical_appointments.csv", index=False)
 
 The original dataset was preserved separately.
 
-**Output file:** `cleaned_medical_appointments.csv`
+Output file: `cleaned_medical_appointments.csv`
 
 ---
 
 ## 3. Loading Data into MySQL
+
+Full script: [`python/02_load_to_mysql.py`](python/02_load_to_mysql.py)
 
 The cleaned CSV file was loaded into MySQL using Pandas, SQLAlchemy, and PyMySQL.
 
@@ -200,13 +232,15 @@ df.to_sql(
 
 The cleaned CSV was loaded into a staging table named `staging_appointments`.
 
-The staging table served as the source for the subsequent data warehouse preparation.
+The staging table serves as the raw layer inside MySQL. It stays unchanged, and every warehouse table is built from it, so the warehouse can be dropped and rebuilt without reloading the CSV.
 
-*Note: Database credentials are intentionally excluded from this project documentation.*
+> The local MySQL instance used for this project has no password. Use your own credentials when running it on another setup.
 
 ---
 
 ## 4. Data Warehouse Design (MySQL)
+
+Full script: [`sql/star_schema.sql`](sql/star_schema.sql)
 
 A Star Schema was designed to organize the appointment data for analytical queries and reporting.
 
@@ -220,13 +254,34 @@ The data warehouse consists of the following tables:
 | `dim_patient` | Contains unique patient records and patient-related attributes. |
 | `dim_date` | Contains calendar attributes used for date-based analysis. |
 
-### 4.2 Dimension Tables
+### 4.2 Intermediate Table: `appointments_clean`
+
+Before the fact table was built, a second table named `appointments_clean` was created from `staging_appointments`. It keeps only the records whose `PatientId` is a whole number.
+
+```sql
+CREATE TABLE appointments_clean AS
+SELECT *
+FROM staging_appointments
+WHERE PatientId = FLOOR(PatientId);
+```
+
+**Five records have a `PatientId` with a decimal part** (for example, values such as `39217.84439`). A patient identifier should be a whole number, and these values could not be matched reliably to the `BIGINT` patient key used in the warehouse. These five appointments were excluded from the fact table.
+
+| Table | Rows |
+|---|---|
+| `staging_appointments` | 110,527 |
+| `appointments_clean` / `fact_appointments` | 110,522 |
+| Excluded | 5 (about 0.005%) |
+
+The effect on the findings is negligible, but the exclusion is documented here because it changes the total appointment count.
+
+### 4.3 Dimension Tables
 
 **dim_patient**
 
 The patient dimension stores one record per unique patient.
 
-Patient records were deduplicated using `ROW_NUMBER()` with `PARTITION BY PatientId`. A surrogate key named `patient_sk` was generated to identify each patient record in the warehouse.
+Patient records were deduplicated using `ROW_NUMBER()` with `PARTITION BY PatientId`, keeping the patient's first appointment (lowest `AppointmentID`). A surrogate key named `patient_sk` was generated to identify each patient record in the warehouse.
 
 ```sql
 CREATE TABLE dim_patient (
@@ -240,6 +295,8 @@ CREATE TABLE dim_patient (
     handcap TINYINT
 );
 ```
+
+> `sms_received` is stored in the fact table instead of this dimension, because it changes from one appointment to the next.
 
 **dim_date**
 
@@ -260,7 +317,7 @@ It includes:
 
 A recursive CTE was used to generate the calendar dates from November 1, 2015, to June 30, 2016.
 
-### 4.3 Fact Table
+### 4.4 Fact Table
 
 **fact_appointments**
 
@@ -286,7 +343,7 @@ This is an example of a **role-playing date dimension**, where one date dimensio
 - Scheduled date
 - Appointment date
 
-### 4.4 No-Show Transformation
+### 4.5 No-Show Transformation
 
 The original `No-show` column contains text values. These were transformed into numeric values during the MySQL fact table loading process.
 
@@ -299,7 +356,7 @@ END
 ```
 
 | Original Value | Transformed Value | Meaning |
-|---|---:|---|
+|---|---|---|
 | No | 0 | Attended |
 | Yes | 1 | No-show |
 
@@ -317,15 +374,61 @@ WHERE appointment_id > 0;
 
 The resulting fact table uses these keys to establish relationships with `dim_date`.
 
-### 4.5 Data Warehouse Relationship
+### 4.6 Data Warehouse Relationship
 
-<!-- INSERT STAR SCHEMA SCREENSHOT HERE -->
-![Medical Appointment Star Schema](<img width="186" height="120" alt="Screenshot 2026-11-08 075601" src="https://github.com/user-attachments/assets/6a094829-241d-4af9-98bf-88fc7ba84798" />
-)
+![Medical Appointment Star Schema](images/star_schema.png)
+
+The same relationships in text form:
+
+```mermaid
+erDiagram
+    dim_patient ||--o{ fact_appointments : "patient_sk"
+    dim_date ||--o{ fact_appointments : "scheduled_date_key"
+    dim_date ||--o{ fact_appointments : "appointment_date_key"
+
+    dim_patient {
+        BIGINT patient_sk PK
+        BIGINT patient_id
+        CHAR gender
+        TINYINT scholarship
+        TINYINT hipertension
+        TINYINT diabetes
+        TINYINT alcoholism
+        TINYINT handcap
+    }
+
+    dim_date {
+        INT date_key PK
+        DATE full_date
+        TINYINT day_number
+        TINYINT month_number
+        VARCHAR month_name
+        TINYINT quarter_number
+        SMALLINT year_number
+        TINYINT day_of_week_number
+        VARCHAR day_of_week_name
+        TINYINT is_weekend
+    }
+
+    fact_appointments {
+        BIGINT appointment_id PK
+        BIGINT patient_sk FK
+        DATETIME scheduled_day
+        DATETIME appointment_day
+        INT age
+        VARCHAR neighbourhood
+        TINYINT sms_received
+        TINYINT no_show
+        INT scheduled_date_key FK
+        INT appointment_date_key FK
+    }
+```
 
 ---
 
 ## 5. SQL Business Analysis
+
+Full script: [`sql/business_analysis.sql`](sql/business_analysis.sql)
 
 SQL was used to answer three main business questions using CTEs, aggregate functions, and window functions.
 
@@ -333,7 +436,7 @@ SQL was used to answer three main business questions using CTEs, aggregate funct
 
 The analysis identifies the patient records with the highest number of missed appointments.
 
-Techniques used:
+**Techniques used:**
 
 - Common Table Expressions (CTEs)
 - `COUNT()`
@@ -374,7 +477,7 @@ The highest-ranked patient record had 18 missed appointments, followed by anothe
 
 Four records shared rank 7, each with 11 missed appointments.
 
-*Note: The patient key is a warehouse-generated identifier. The number of missed appointments does not necessarily represent a patient's likelihood of missing an appointment, since patients with more appointments have more opportunities to miss one.*
+> **Note:** The patient key is a warehouse-generated identifier. The number of missed appointments does not necessarily represent a patient's likelihood of missing an appointment, since patients with more appointments have more opportunities to miss one.
 
 ### Business Question 2: How did a patient's previous appointment attendance compare with their next appointment?
 
@@ -449,7 +552,7 @@ ORDER BY transition_count DESC;
 **Key Findings**
 
 | Attendance Transition | Count |
-|---|---:|
+|---|---|
 | Attended → Attended | 31,490 |
 | Attended → No Show | 6,700 |
 | No Show → Attended | 6,585 |
@@ -457,9 +560,9 @@ ORDER BY transition_count DESC;
 
 The analysis identified 48,228 consecutive appointment transitions.
 
-The most frequent pattern was **Attended → Attended**, with 31,490 transitions. Meanwhile, 3,453 transitions showed consecutive missed appointments, while 6,585 showed patients attending after a previous missed appointment.
+The most frequent pattern was Attended → Attended, with 31,490 transitions. Meanwhile, 3,453 transitions showed consecutive missed appointments, while 6,585 showed patients attending after a previous missed appointment.
 
-These counts represent appointment transitions, not unique patients.
+> These counts represent appointment transitions, not unique patients.
 
 ### Business Question 3: How did the monthly no-show rate change compared with the previous month?
 
@@ -505,7 +608,7 @@ ORDER BY appointment_month;
 **Key Findings**
 
 | Month | Total Appointments | No-Shows | No-Show Rate | Change from Previous Month |
-|---|---:|---:|---:|---:|
+|---|---|---|---|---|
 | April 2016 | 3,235 | 633 | 19.57% | — |
 | May 2016 | 80,838 | 16,804 | 20.79% | +1.22 pp |
 | June 2016 | 26,449 | 4,882 | 18.46% | -2.33 pp |
@@ -514,7 +617,7 @@ The no-show rate increased by 1.22 percentage points in May compared with April,
 
 May recorded the highest no-show rate at 20.79%, while June recorded the lowest at 18.46%.
 
-*Note: The monthly appointment volumes differ considerably. The results describe the records available in the dataset and should be interpreted with the dataset's date coverage in mind.*
+> **Note:** The monthly appointment volumes differ considerably, and the three months add up to 110,522 appointments (the 5 records excluded in section 4.2 are not included). The results describe the records available in the dataset and should be interpreted with the dataset's date coverage in mind.
 
 ---
 
@@ -524,8 +627,7 @@ The final data warehouse was connected to Power BI to create a dashboard present
 
 ### Dashboard Overview
 
-<!-- INSERT FULL DASHBOARD SCREENSHOT HERE -->
-![Medical Appointment Dashboard](images/dashboard.png)
+![Medical Appointment Dashboard](images/dashboard_overview.png)
 
 ### Dashboard Visualizations
 
@@ -555,25 +657,25 @@ Age groups were created in Power Query using conditional column logic.
 
 ### Additional Dashboard Screenshots
 
-<!-- INSERT ATTENDANCE DISTRIBUTION SCREENSHOT HERE -->
-![Appointment Attendance Distribution](<img width="226" height="192" alt="Screenshot 2026-11-08 075723" src="https://github.com/user-attachments/assets/a5ba7b6f-3bc4-409d-9225-67b2d9d062ee" />
-)
+**Appointment Attendance Distribution**
 
-<!-- INSERT MONTHLY NO-SHOW TREND SCREENSHOT HERE -->
-![Monthly No-Show Trend](<img width="225" height="233" alt="Screenshot 2026-11-08 075732" src="https://github.com/user-attachments/assets/f3f2363f-0150-414f-b1c6-6c44565da280" />
-)
+![Appointment Attendance Distribution](images/attendance_distribution.png)
 
-<!-- INSERT AGE GROUP ANALYSIS SCREENSHOT HERE -->
-![No-Show by Age Group](<img width="341" height="290" alt="Screenshot 2026-11-08 075739" src="https://github.com/user-attachments/assets/dc77e045-f3c0-4755-b043-03ad64a40006" />
-)
+**Monthly No-Show Trend**
 
-<!-- INSERT NEIGHBOURHOOD ANALYSIS SCREENSHOT HERE -->
-![Top 10 Neighbourhoods by No-Show Count](<img width="608" height="236" alt="Screenshot 2026-11-08 075745" src="https://github.com/user-attachments/assets/b8cd1e1d-6079-4d53-95b6-8bafd3563a70" />
-)
+![Monthly No-Show Trend](images/monthly_no_show_trend.png)
 
-<!-- INSERT SMS ANALYSIS SCREENSHOT HERE -->
-![Attendance by SMS Notification](<img width="300" height="294" alt="Screenshot 2026-11-08 075753" src="https://github.com/user-attachments/assets/73ce83f3-f5d5-4e00-985c-7bbd08e52841" />
-)
+**No-Show by Age Group**
+
+![No-Show by Age Group](images/no_show_by_age_group.png)
+
+**Top 10 Neighbourhoods by No-Show Count**
+
+![Top 10 Neighbourhoods by No-Show Count](images/top_10_neighbourhoods.png)
+
+**Attendance by SMS Notification**
+
+![Attendance by SMS Notification](images/attendance_by_sms.png)
 
 ---
 
@@ -589,13 +691,20 @@ Based on the SQL analysis and Power BI visualizations:
 
 These findings describe patterns in the available appointment records. They do not establish that any particular factor causes a patient to miss an appointment.
 
+---
+
 ## 8. Project Limitations
 
 - The analysis is based on the available historical dataset and does not represent current medical appointment behavior.
 - Some unusual values were investigated but retained when there was insufficient evidence to classify them as invalid.
+- Five appointment records with a non-integer `PatientId` were excluded from the fact table, so the warehouse contains 110,522 of the 110,527 original records.
+- `dim_patient` was built from `staging_appointments`, so it also contains the patients behind those five records, with rounded IDs and no appointments in the fact table. A count of unique patients from `dim_patient` can therefore be 5 higher than the number of patients in the fact table.
+- Patient attributes in `dim_patient` (gender, scholarship, hypertension, diabetes, alcoholism, handicap) are a snapshot from the patient's first appointment and are not tracked over time.
 - Appointment counts do not automatically represent no-show rates or individual patient risk.
 - SMS attendance comparisons are descriptive and do not establish a causal relationship between receiving an SMS and attending an appointment.
 - The monthly comparison should be interpreted alongside differences in appointment volume and dataset coverage.
+
+---
 
 ## 9. Skills Demonstrated
 
@@ -612,7 +721,9 @@ These findings describe patterns in the available appointment records. They do n
 - Aggregation and business analysis
 - Power BI dashboard development
 - Data storytelling and insight communication
+- Documenting data quality decisions and limitations
 
+---
 
 ## Conclusion
 
