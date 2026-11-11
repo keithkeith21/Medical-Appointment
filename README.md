@@ -627,7 +627,7 @@ The final data warehouse was connected to Power BI to create a dashboard present
 
 ### Dashboard Overview
 
-![Medical Appointment Dashboard](medicalappointmentclip/Screenshot 2026-11-08 070934.png)
+![Medical Appointment Dashboard](Screenshot 2026-11-08 070934.png)
 
 ### Dashboard Visualizations
 
