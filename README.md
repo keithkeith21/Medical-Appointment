@@ -43,7 +43,7 @@ Medical-Appointment/
 ├── 02_load_to_mysql.py           # loads the cleaned CSV into MySQL
 ├── star_schema.sql               # builds appointments_clean, dim_date, dim_patient, fact_appointments
 ├── business_analysis.sql         # the three business questions
-└── medicalappointmentclip/       # dashboard screenshots used in this README
+└── medicalappointmentclip/       # dashboard and star schema screenshots used in this README
 ```
 
 ## Project Workflow
@@ -374,8 +374,7 @@ The resulting fact table uses these keys to establish relationships with `dim_da
 
 ### 4.6 Data Warehouse Relationship
 
-<!-- Add the ERD screenshot as medicalappointmentclip/star_schema.png, then uncomment:
-![Medical Appointment Star Schema](medicalappointmentclip/star_schema.png) -->
+![Medical Appointment Star Schema](medicalappointmentclip/Screenshot%202026-11-08%20080829.png)
 
 The same relationships in text form:
 
@@ -626,7 +625,7 @@ The final data warehouse was connected to Power BI to create a dashboard present
 
 ### Dashboard Overview
 
-![Medical Appointment Dashboard](medicalappointmentclip/dashboard_overview.png)
+![Medical Appointment Dashboard](medicalappointmentclip/Screenshot%202026-11-08%20070934.png)
 
 ### Dashboard Visualizations
 
@@ -658,23 +657,23 @@ Age groups were created in Power Query using conditional column logic.
 
 **Appointment Attendance Distribution**
 
-![Appointment Attendance Distribution](medicalappointmentclip/attendance_distribution.png)
+![Appointment Attendance Distribution](medicalappointmentclip/Screenshot%202026-11-08%20075723.png)
 
 **Monthly No-Show Trend**
 
-![Monthly No-Show Trend](medicalappointmentclip/monthly_no_show_trend.png)
+![Monthly No-Show Trend](medicalappointmentclip/Screenshot%202026-11-08%20075732.png)
 
 **No-Show by Age Group**
 
-![No-Show by Age Group](medicalappointmentclip/no_show_by_age_group.png)
+![No-Show by Age Group](medicalappointmentclip/Screenshot%202026-11-08%20075739.png)
 
 **Top 10 Neighbourhoods by No-Show Count**
 
-![Top 10 Neighbourhoods by No-Show Count](medicalappointmentclip/top_10_neighbourhoods.png)
+![Top 10 Neighbourhoods by No-Show Count](medicalappointmentclip/Screenshot%202026-11-08%20075745.png)
 
 **Attendance by SMS Notification**
 
-![Attendance by SMS Notification](medicalappointmentclip/attendance_by_sms.png)
+![Attendance by SMS Notification](medicalappointmentclip/Screenshot%202026-11-08%20075753.png)
 
 ---
 
