@@ -39,13 +39,11 @@ The goal is to transform raw appointment records into structured data and meanin
 ```
 Medical-Appointment/
 ├── README.md
-├── images/                       # screenshots used in this README
-├── python/
-│   ├── 01_clean_data.py          # exploration, anomaly checks, cleaning, EDA
-│   └── 02_load_to_mysql.py       # loads the cleaned CSV into MySQL
-└── sql/
-    ├── star_schema.sql           # builds dim_date, dim_patient, fact_appointments
-    └── business_analysis.sql     # the three business questions
+├── 01_clean_data.py              # exploration, anomaly checks, cleaning, EDA
+├── 02_load_to_mysql.py           # loads the cleaned CSV into MySQL
+├── star_schema.sql               # builds appointments_clean, dim_date, dim_patient, fact_appointments
+├── business_analysis.sql         # the three business questions
+└── medicalappointmentclip/       # dashboard screenshots used in this README
 ```
 
 ## Project Workflow
@@ -62,9 +60,9 @@ Medical-Appointment/
 1. Download the dataset from Kaggle and place `KaggleV2-May-2016.csv` in the project root.
 2. Install the libraries: `pip install pandas numpy sqlalchemy pymysql`
 3. In MySQL Workbench, create the database: `CREATE DATABASE medical_appointment;`
-4. From the project root, run `python python/01_clean_data.py` (creates `cleaned_medical_appointments.csv`).
-5. From the project root, run `python python/02_load_to_mysql.py` (creates `staging_appointments`).
-6. In MySQL Workbench, run `sql/star_schema.sql`, then `sql/business_analysis.sql`.
+4. From the project root, run `python 01_clean_data.py` (creates `cleaned_medical_appointments.csv`).
+5. From the project root, run `python 02_load_to_mysql.py` (creates `staging_appointments`).
+6. In MySQL Workbench, run `star_schema.sql`, then `business_analysis.sql`.
 7. Connect Power BI to the `medical_appointment` database.
 
 ---
@@ -100,7 +98,7 @@ The original dataset was loaded into Python for initial exploration and data qua
 
 ## 2. Data Exploration and Cleaning (Python & Pandas)
 
-Full script: [`python/01_clean_data.py`](python/01_clean_data.py)
+Full script: [`01_clean_data.py`](01_clean_data.py)
 
 The initial dataset was loaded using Pandas.
 
@@ -202,7 +200,7 @@ Output file: `cleaned_medical_appointments.csv`
 
 ## 3. Loading Data into MySQL
 
-Full script: [`python/02_load_to_mysql.py`](python/02_load_to_mysql.py)
+Full script: [`02_load_to_mysql.py`](02_load_to_mysql.py)
 
 The cleaned CSV file was loaded into MySQL using Pandas, SQLAlchemy, and PyMySQL.
 
@@ -240,7 +238,7 @@ The staging table serves as the raw layer inside MySQL. It stays unchanged, and 
 
 ## 4. Data Warehouse Design (MySQL)
 
-Full script: [`sql/star_schema.sql`](sql/star_schema.sql)
+Full script: [`star_schema.sql`](star_schema.sql)
 
 A Star Schema was designed to organize the appointment data for analytical queries and reporting.
 
@@ -376,7 +374,8 @@ The resulting fact table uses these keys to establish relationships with `dim_da
 
 ### 4.6 Data Warehouse Relationship
 
-![Medical Appointment Star Schema](images/star_schema.png)
+<!-- Add the ERD screenshot as medicalappointmentclip/star_schema.png, then uncomment:
+![Medical Appointment Star Schema](medicalappointmentclip/star_schema.png) -->
 
 The same relationships in text form:
 
@@ -428,7 +427,7 @@ erDiagram
 
 ## 5. SQL Business Analysis
 
-Full script: [`sql/business_analysis.sql`](sql/business_analysis.sql)
+Full script: [`business_analysis.sql`](business_analysis.sql)
 
 SQL was used to answer three main business questions using CTEs, aggregate functions, and window functions.
 
@@ -627,7 +626,7 @@ The final data warehouse was connected to Power BI to create a dashboard present
 
 ### Dashboard Overview
 
-![Medical Appointment Dashboard](Screenshot 2026-11-08 070934.png)
+![Medical Appointment Dashboard](medicalappointmentclip/dashboard_overview.png)
 
 ### Dashboard Visualizations
 
@@ -659,23 +658,23 @@ Age groups were created in Power Query using conditional column logic.
 
 **Appointment Attendance Distribution**
 
-![Appointment Attendance Distribution](images/attendance_distribution.png)
+![Appointment Attendance Distribution](medicalappointmentclip/attendance_distribution.png)
 
 **Monthly No-Show Trend**
 
-![Monthly No-Show Trend](images/monthly_no_show_trend.png)
+![Monthly No-Show Trend](medicalappointmentclip/monthly_no_show_trend.png)
 
 **No-Show by Age Group**
 
-![No-Show by Age Group](images/no_show_by_age_group.png)
+![No-Show by Age Group](medicalappointmentclip/no_show_by_age_group.png)
 
 **Top 10 Neighbourhoods by No-Show Count**
 
-![Top 10 Neighbourhoods by No-Show Count](images/top_10_neighbourhoods.png)
+![Top 10 Neighbourhoods by No-Show Count](medicalappointmentclip/top_10_neighbourhoods.png)
 
 **Attendance by SMS Notification**
 
-![Attendance by SMS Notification](images/attendance_by_sms.png)
+![Attendance by SMS Notification](medicalappointmentclip/attendance_by_sms.png)
 
 ---
 
